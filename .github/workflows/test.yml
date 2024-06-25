@@ -24,16 +24,18 @@ jobs:
         python-version:
           - "3.7"
           - "3.11"
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - name: Install Poetry
-        run: pipx install poetry
+        run: pipx install poetry==1.7
       - name: Install Python ${{ matrix.python-version }}
+        id: setup-python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          # cache: 'poetry'
-      - run: poetry install
-      - run: poetry run pytest -V
+          update-environment: false
+      - run: poetry env use ${{ steps.setup-python.outputs.python-path }}
+      - run: poetry install --extras "tests" --no-interaction --no-cache -vvv
+      - run: poetry run pytest ./tests
